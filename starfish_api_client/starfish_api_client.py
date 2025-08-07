@@ -208,6 +208,34 @@ class StarfishAPIClient:
                                        {"paths": vol_path, "tags": tag},
                                        {'Content-Type': 'application/vnd.sf.tag.purge+json'})
     
+    def update_scan(self, volume, path=''):
+        """
+        Initiate a scan of a volume or a path within a volume.
+        :param volume: volume name
+        :param path: path within the volume
+        :param force: whether to force a scan even if one is already running
+        :return: scan job details
+        """
+        data = {
+            'crawler_options': {
+                'depth': 0,
+                'start_points': [path] if path else [],
+            },
+            'immediate': True,
+            'requested_by': 'client',
+            'type': 'diff',
+            'volume': volume
+        }
+        return self._send_post_request('scan/', data)
+    
+    def get_scan(self, scan_id):
+        """
+        Get details of a specific scan by its ID.
+        :param scan_id: ID of the scan
+        :return: scan details
+        """
+        return self._send_get_request(f'scan/{scan_id}')
+    
     def get_scans(self, volumes=None):
         """
         Collect scans of all passed volumes, or all scans if no volumes are passed.
