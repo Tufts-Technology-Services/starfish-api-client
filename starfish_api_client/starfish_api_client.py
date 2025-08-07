@@ -208,9 +208,11 @@ class StarfishAPIClient:
                                        {"paths": vol_path, "tags": tag},
                                        {'Content-Type': 'application/vnd.sf.tag.purge+json'})
     
-    def update_scan(self, volume, path=''):
+    def scan_new(self, volume, path=''):
         """
-        Initiate a scan of a volume or a path within a volume.
+        Initiate a scan of a volume or a path within a volume to pick up changes in top level 
+        directories between full scans. Needed to add tags to new directories without waiting
+        for the next full scan.
         :param volume: volume name
         :param path: path within the volume
         :param force: whether to force a scan even if one is already running
