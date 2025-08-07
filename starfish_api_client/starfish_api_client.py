@@ -27,7 +27,7 @@ class StarfishAPIClient:
 
     @record_process
     def get_volumes(self, exclude_vols=()):
-        res = self._send_get_request('volume')
+        res = self.__send_get_request('volume')
         return [i for i in res if i['vol'] not in exclude_vols]
     
     def get_volume_attributes(self):
@@ -43,29 +43,29 @@ class StarfishAPIClient:
     
     def get_groups(self):
         """get set of group names on starfish"""
-        response = self._send_get_request('mapping/group/')
+        response = self.__send_get_request('mapping/group/')
         groupnames = {g['name'] for g in response}
         return groupnames
     
     @record_process
     def get_vol_membership(self, volume, voltype):
-        return self._send_get_request(f'mapping/{voltype}_membership?volume_name={volume}')
+        return self.__send_get_request(f'mapping/{voltype}_membership?volume_name={volume}')
 
     @record_process
     def get_vol_user_name_ids(self, volume):
-        users = self._send_get_request(f'mapping/user?volume_name={volume}')
+        users = self.__send_get_request(f'mapping/user?volume_name={volume}')
         return {u['uid']: u['name'] for u in users}
     
     @record_process
     def get_starfish_groups(self):
-        group_dict = self._send_get_request('mapping/user_membership')
+        group_dict = self.__send_get_request('mapping/user_membership')
         return [g['name'] for g in group_dict]
     
     def get_zones(self, zone_id=''):
         """Get all zones from the API, or the zone with the corresponding ID
         """
         zone_endpoint = 'zone' if zone_id == '' else f'zone/{zone_id}'
-        return self._send_get_request(zone_endpoint)
+        return self.__send_get_request(zone_endpoint)
 
     def get_zone_by_name(self, zone_name):
         """Get a zone by name"""
@@ -81,7 +81,7 @@ class StarfishAPIClient:
             "managers": managers,
             "managing_groups": managing_groups,
         }
-        response = self._send_post_request('zone', data)
+        response = self.__send_post_request('zone', data)
         return response
     
     def delete_zone(self, zone_id, zone_name=None):
@@ -93,7 +93,7 @@ class StarfishAPIClient:
             zone_id = zone['id']
             if not zone_id:
                 raise ValueError(f"Zone {zone_name} not found.")
-        return self._send_delete_request(f'zone/{zone_id}')
+        return self.__send_delete_request(f'zone/{zone_id}')
     
     def update_zone(self, zone, paths=[], managers=[], managing_groups=[]):
         """Update a zone via the API"""
@@ -103,7 +103,7 @@ class StarfishAPIClient:
         data['managers'] = managers if managers else zone['managers']
         data['managing_groups'] = managing_groups if managing_groups else zone['managing_groups']
         
-        return self._send_put_request(f'zone/{zone_id}/', data)
+        return self.__send_put_request(f'zone/{zone_id}/', data)
 
     def request_volumes_query(self):
         return self.query(query_terms={'depth': 0})
@@ -122,7 +122,7 @@ class StarfishAPIClient:
                 'tags_inherited', 'nlinks', 'errors', 'type_hum', 'valid_from', 'valid_to', 'cost',
                 'total_capacity', 'logical_size', 'physical_size', 'physical_nlinks_size',
                 'size_nlinks', 'entries_count', 'mode', 'mode_hum', 'mount_path']
-        response =  self._request_query(volumes_paths, query_terms, async_after)
+        response =  self.__request_query(volumes_paths, query_terms=query_terms, columns=cols, async_after=async_after)
         if not wait or response['complete']:
             sync_result = response['results']
             if isinstance(sync_result, dict) and 'error' in sync_result:
@@ -144,7 +144,7 @@ class StarfishAPIClient:
         :param query_id:
         :return: True if finished, False otherwise
         """
-        res = self._send_get_request(f'async/query/{query_id}')
+        res = self.__send_get_request(f'async/query/{query_id}')
         return res['is_done']
 
     def download_query_result(self, query_id):
@@ -154,7 +154,7 @@ class StarfishAPIClient:
         :param query_id:
         :return:
         """
-        return self._send_get_request(f'async/query_result/{query_id}')
+        return self.__send_get_request(f'async/query_result/{query_id}')
 
     def delete_query_result(self, query_id):
         """
@@ -164,11 +164,11 @@ class StarfishAPIClient:
         :param query_id:
         :return: True if successful
         """
-        self._send_delete_request(f'async/query_result/{query_id}')
+        self.__send_delete_request(f'async/query_result/{query_id}')
         return True
     
     def get_tags(self):
-        return self._send_get_request('tag')
+        return self.__send_get_request('tag')
 
     def add_tag(self, vol_path, new_tag):
         """
@@ -178,7 +178,7 @@ class StarfishAPIClient:
             vol_path = [vol_path]
         if not isinstance(new_tag, list):
             new_tag = [new_tag]
-        return self._send_post_request('tag/bulk',
+        return self.__send_post_request('tag/bulk',
                                        {"paths": vol_path, "tags": new_tag, "strict": False},
                                        {'Content-Type': 'application/vnd.sf.tag.bulk+json'})
 
@@ -190,7 +190,7 @@ class StarfishAPIClient:
             old_tag = [old_tag]
         if not isinstance(new_tag, list):
             new_tag = [new_tag]
-        return self._send_post_request('tag/rename',
+        return self.__send_post_request('tag/rename',
                                        {"tag": old_tag, "new_tag": new_tag},
                                        {'Content-Type': 'application/vnd.sf.tag.rename+json'})
 
@@ -199,12 +199,12 @@ class StarfishAPIClient:
             vol_path = [vol_path]
         if not isinstance(tag, list):
             tag = [tag]
-        return self._send_post_request('tag/detach',
+        return self.__send_post_request('tag/detach',
                                        {"paths": vol_path, "tags": tag},
                                        {'Content-Type': 'application/vnd.sf.tag.detach+json'})
 
     def purge_tag(self, vol_path, tag):
-        return self._send_post_request('tag/purge',
+        return self.__send_post_request('tag/purge',
                                        {"paths": vol_path, "tags": tag},
                                        {'Content-Type': 'application/vnd.sf.tag.purge+json'})
     
@@ -226,7 +226,7 @@ class StarfishAPIClient:
             'type': 'diff',
             'volume': volume
         }
-        return self._send_post_request('scan/', data)
+        return self.__send_post_request('scan/', data)
     
     def get_scan(self, scan_id):
         """
@@ -234,7 +234,7 @@ class StarfishAPIClient:
         :param scan_id: ID of the scan
         :return: scan details
         """
-        return self._send_get_request(f'scan/{scan_id}')
+        return self.__send_get_request(f'scan/{scan_id}')
     
     def get_scans(self, volumes=None):
         """
@@ -246,9 +246,9 @@ class StarfishAPIClient:
         if volumes is not None:
             scan_endpoint = 'scan/?' + '&'.join([f'volume={v}' for v in volumes])
 
-        return self._send_get_request(scan_endpoint)
+        return self.__send_get_request(scan_endpoint)
     
-    def _request_query(self, volumes_paths=None, groupby=None, query_terms=None, columns=None,
+    def __request_query(self, volumes_paths=None, groupby=None, query_terms=None, columns=None,
                async_after=5):
 
         if query_terms is None:
@@ -279,7 +279,7 @@ class StarfishAPIClient:
         if volumes_paths is not None:
             body['volumes_and_paths'] = volumes_paths
 
-        r = self._send_post_request('async/query/', body)
+        r = self.__send_post_request('async/query/', body)
         if r.status_code == 200:
             # return query result
             query_id = None
@@ -290,7 +290,7 @@ class StarfishAPIClient:
             query_id = r.json()['query_id']
             return {'query_id': query_id, 'complete': False, 'results': None}
 
-    def _get_headers(self, additional_headers=None):
+    def __get_headers(self, additional_headers=None):
         headers = {
             'Accept': 'application/json',
             'Authorization': f'Bearer {self.token}'
@@ -299,30 +299,30 @@ class StarfishAPIClient:
             headers.update(additional_headers)
         return headers
 
-    def _send_get_request(self, endpoint, params=None):
+    def __send_get_request(self, endpoint, params=None):
         r = requests.get(os.path.join(self.url, endpoint),
                          params=params if not None else {},
-                         headers=self._get_headers())
+                         headers=self.__get_headers())
         r.raise_for_status()
         return r.json()
 
-    def _send_delete_request(self, endpoint, params=None):
+    def __send_delete_request(self, endpoint, params=None):
         r = requests.delete(os.path.join(self.url, endpoint),
                             params=params if not None else {},
-                            headers=self._get_headers())
+                            headers=self.__get_headers())
         r.raise_for_status()
         return r
 
-    def _send_post_request(self, endpoint, payload, headers=None):
+    def __send_post_request(self, endpoint, payload, headers=None):
         r = requests.post(os.path.join(self.url, endpoint),
                           json=payload,
-                          headers=self._get_headers(headers))
+                          headers=self.__get_headers(headers))
         r.raise_for_status()
         return r
     
-    def _send_put_request(self, endpoint, payload, headers=None):
+    def __send_put_request(self, endpoint, payload, headers=None):
         r = requests.put(os.path.join(self.url, endpoint),
                           json=payload,
-                          headers=self._get_headers(headers))
+                          headers=self.__get_headers(headers))
         r.raise_for_status()
         return r
