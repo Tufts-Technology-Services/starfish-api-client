@@ -26,20 +26,20 @@ class StarfishAPIClient:
         return token
 
     @record_process
-    def get_volumes(self, exclude_vols=()):
+    def get_volumes(self, exclude_vols=(), include_vols=()):
         res = self.__send_get_request('volume')
-        return [i for i in res if i['vol'] not in exclude_vols]
+        return [i for i in res if i['vol'] not in exclude_vols and (not include_vols or i['vol'] in include_vols)]
     
     def get_volume_attributes(self):
         return self.get_volumes()
     
-    def get_volume_names(self, exclude_vols=()):
+    def get_volume_names(self, exclude_vols=(), include_vols=()):
         """
         Get a list of volume names
         :param exclude_vols: list of volume names to exclude
         :return: list of volume names
         """
-        return [i['vol'] for i in self.get_volumes(exclude_vols)]
+        return [i['vol'] for i in self.get_volumes(exclude_vols, include_vols)]
     
     def get_groups(self):
         """get set of group names on starfish"""
