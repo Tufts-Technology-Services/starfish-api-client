@@ -1,17 +1,3 @@
-import logging
-
-logger = logging.getLogger('starfish_api_client')
-
-
-def record_process(func):
-    """Wrapper function for logging"""
-    def call(*args, **kwargs):
-        funcdata = '{} {}'.format(func.__name__, func.__code__.co_firstlineno)
-        logger.debug('\n%s START.', funcdata)
-        result = func(*args, **kwargs)
-        logger.debug('%s END. output:\n%s\n', funcdata, result)
-        return result
-    return call
 
 def get_most_recent_scans(scans):
     """
