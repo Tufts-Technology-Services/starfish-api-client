@@ -1,12 +1,15 @@
 import requests
 import os
 
+from starfish_api_client.abstract_client import AbstractClient
 
-class RedashAPIClient:
+
+class RedashAPIClient(AbstractClient):
     def __init__(self, starfish_host, query_id, api_key):
         self.url = f'https://{starfish_host}/redash/api/'
         self.token = api_key
         self.query_id = query_id
+        self.auth_method = 'Key'
     
     def query(self):
         """submit a query and return a json of the results."""
@@ -19,17 +22,6 @@ class RedashAPIClient:
         :return:
         """
         self._download_file(f'queries/{self.query_id}/results.csv', f'{local_filename}.csv')
-    
-    def _send_get_request(self, endpoint, params=None):
-        headers = {
-            'Accept': 'application/json',
-            'Authorization': f'Key {self.token}'
-        }
-        r = requests.get(os.path.join(self.url, endpoint),
-                         params=params if not None else {},
-                         headers=headers)
-        r.raise_for_status()
-        return r.json()
     
     def _download_file(self, endpoint: str, local_filename: str, chunk_size: int = 524_288):
         """

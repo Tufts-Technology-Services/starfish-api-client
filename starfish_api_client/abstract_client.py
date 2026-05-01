@@ -16,6 +16,7 @@ class AbstractClient:
     connect_timeout: int = 5
     read_timeout: int = 20
     retries: int = 3
+    auth_method: str = 'Bearer'
 
     def renew_token(self, refresh_token):
         raise NotImplementedError
@@ -36,7 +37,7 @@ class AbstractClient:
             'Accept': 'application/json'
         }
         if not skip_auth:
-            headers['Authorization'] = f'Bearer {self.token}'
+            headers['Authorization'] = f'{self.auth_method} {self.token}'
         if additional_headers is not None:
             headers.update(additional_headers)
         return headers
@@ -74,6 +75,18 @@ class AbstractClient:
                 raise e
         return r.json()
 
+    def _download_file(self, endpoint: str, local_filename: str, chunk_size: int = 524_288, headers=None, skip_auth=False):
+        if headers is None:
+            headers = {'Accept': 'application/octet-stream'} # default header for file downloads
+        headers = self._get_headers(headers, skip_auth=skip_auth)
+        
+        with requests.get(os.path.join(self.url, endpoint), headers=headers, stream=True) as r:
+            r.raise_for_status()
+            with open(local_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=chunk_size):
+                    f.write(chunk)
+        return True
+    
     def _send_post_request(self, endpoint, payload, headers=None, skip_auth=False):
         r = self._send_body('POST', endpoint, payload, headers, skip_auth)
         return r.json()
