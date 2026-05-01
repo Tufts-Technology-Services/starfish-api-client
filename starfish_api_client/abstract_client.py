@@ -15,6 +15,7 @@ class AbstractClient:
     verify_certs: bool = True
     connect_timeout: int = 5
     read_timeout: int = 20
+    retries: int = 3
 
     def renew_token(self, refresh_token):
         raise NotImplementedError
@@ -40,7 +41,9 @@ class AbstractClient:
             headers.update(additional_headers)
         return headers
 
-    def _send_get_request(self, endpoint, params=None, retries=RETRIES):
+    def _send_get_request(self, endpoint, params=None, retries=None):
+        if retries is None:
+            retries = self.retries
         if self.token is None and self.refresh_token is not None:
             self.renew_token(self.refresh_token)
 
@@ -83,7 +86,9 @@ class AbstractClient:
         r = self._send_body('PATCH', endpoint, payload, headers, skip_auth)
         return r.json()
     
-    def _send_body(self, http_method, endpoint, payload, headers=None, skip_auth=False, retries=RETRIES):
+    def _send_body(self, http_method, endpoint, payload, headers=None, skip_auth=False, retries=None):
+        if retries is None:
+            retries = self.retries
         if not skip_auth and self.token is None and self.refresh_token is not None:
             self.renew_token(self.refresh_token)
 
@@ -123,7 +128,9 @@ class AbstractClient:
         #print(r.headers)
         return r
 
-    def _send_delete_request(self, endpoint, body=None, retries=RETRIES):
+    def _send_delete_request(self, endpoint, body=None, retries=None):
+        if retries is None:
+            retries = self.retries
         if body is not None:
             return self._send_body('DELETE', endpoint, body)
         if self.token is None and self.refresh_token is not None:
