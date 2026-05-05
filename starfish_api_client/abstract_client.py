@@ -110,7 +110,8 @@ class AbstractClient:
             raise ValueError(f'Invalid http method: {http_method}')
         
         headers = headers if headers is not None else {}
-        headers.update({'Content-Type': 'application/json'})
+        if 'Content-Type' not in headers:
+            headers.update({'Content-Type': 'application/json'})
 
         logger.debug("%s %s payload: %s", http_method, urljoin(self.url, endpoint), payload)
         headers = self._get_headers(headers, skip_auth=skip_auth)
