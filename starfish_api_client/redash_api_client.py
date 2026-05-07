@@ -6,13 +6,11 @@ from starfish_api_client.constants import (CERTPATH, CONNECT_TIMEOUT,
 
 class RedashAPIClient(AbstractClient):
     def __init__(self, starfish_host, query_id, api_key):
+        super().__init__(starfish_host, token=api_key, verify_certs=VERIFY_CERTS, cert_path=CERTPATH,
+                         connect_timeout=CONNECT_TIMEOUT, read_timeout=READ_TIMEOUT, retries=RETRIES,
+                         auth_method='Key')
         self.url = f'https://{starfish_host}/redash/api/'
-        self.token = api_key
         self.query_id = query_id
-        self.configure_certs(VERIFY_CERTS, CERTPATH)
-        self.configure_timeout(CONNECT_TIMEOUT, READ_TIMEOUT)
-        self.configure_retries(RETRIES)
-        self.set_auth_token_name('Key')
     
     def query(self):
         """submit a query and return a json of the results."""

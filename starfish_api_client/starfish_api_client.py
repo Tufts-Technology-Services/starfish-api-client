@@ -11,11 +11,9 @@ logger = logging.getLogger(__name__)
 class StarfishAPIClient(AbstractClient):
 
     def __init__(self, host=None, token=None, username=None, password=None):
+        super().__init__(host, token, verify_certs=VERIFY_CERTS, cert_path=CERTPATH,
+                         connect_timeout=CONNECT_TIMEOUT, read_timeout=READ_TIMEOUT, retries=RETRIES)
         self.url = f'https://{host}/api/'
-        self.configure_certs(VERIFY_CERTS, CERTPATH)
-        self.configure_timeout(CONNECT_TIMEOUT, READ_TIMEOUT)
-        self.configure_retries(RETRIES)
-        self.token = token
         if self.token is None:
             self.token = self.get_auth_token(username, password)
     
