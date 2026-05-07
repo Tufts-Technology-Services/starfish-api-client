@@ -30,12 +30,9 @@ class AbstractClient:
         self.auth_method = auth_method
         self.token = token
         self.refresh_token = refresh_token
-
-    def renew_token(self, refresh_token=None):
-        raise NotImplementedError
     
     def _get_certs(self):
-        if self.cert_path is not None and self.verify_certs:
+        if  self.verify_certs and self.cert_path is not None:
             if not os.path.exists(self.cert_path):
                 logger.error("Certificate path %s does not exist.", self.cert_path)
                 raise FileNotFoundError(f"Certificate path {self.cert_path} does not exist.")
@@ -93,7 +90,10 @@ class AbstractClient:
             headers = {'Accept': 'application/octet-stream'} # default header for file downloads
         headers = self._get_headers(headers, skip_auth=skip_auth)
         
-        with requests.get(os.path.join(self.url, endpoint), headers=headers, stream=True) as r:
+        with requests.get(os.path.join(self.url, endpoint), 
+                          headers=headers, verify=self._get_certs(), 
+                          timeout=self._get_timeout(), 
+                          stream=True) as r:
             r.raise_for_status()
             with open(local_filename, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=chunk_size):
