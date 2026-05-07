@@ -18,6 +18,22 @@ class AbstractClient:
     retries: int = 3
     auth_method: str = 'Bearer'
 
+    def configure_certs(self, verify_certs=True, cert_path=None):
+        if cert_path and not verify_certs:
+            logger.warning("a certificate path is specified, but verify_certs is False.")
+        self.verify_certs = verify_certs
+        self.cert_path = cert_path
+    
+    def configure_timeout(self, connect_timeout, read_timeout):
+        self.connect_timeout = connect_timeout
+        self.read_timeout = read_timeout
+    
+    def configure_retries(self, retries):
+        self.retries = retries
+    
+    def set_auth_token_name(self, auth_method):
+        self.auth_method = auth_method
+
     def renew_token(self, refresh_token):
         raise NotImplementedError
     

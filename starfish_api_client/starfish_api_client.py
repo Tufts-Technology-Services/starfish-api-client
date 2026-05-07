@@ -3,25 +3,18 @@ import time
 import logging
 
 from starfish_api_client.abstract_client import AbstractClient
-
+from starfish_api_client.constants import (CERTPATH, VERIFY_CERTS, 
+                                           CONNECT_TIMEOUT, READ_TIMEOUT, RETRIES)
 logger = logging.getLogger(__name__)
-
-CERTPATH = os.getenv('SF_CERT_PATH', None)
-VERIFY_CERTS = os.getenv('SF_VERIFY_CERTS', 'True').lower() in ['true', '1', 'yes']
-CONNECT_TIMEOUT = int(os.getenv('SF_CONNECT_TIMEOUT', '10'))
-READ_TIMEOUT = int(os.getenv('SF_READ_TIMEOUT', '60'))
-RETRIES = int(os.getenv('SF_RETRIES', '3'))
 
 
 class StarfishAPIClient(AbstractClient):
 
     def __init__(self, host=None, token=None, username=None, password=None):
         self.url = f'https://{host}/api/'
-        self.cert_path = CERTPATH
-        self.verify_certs = VERIFY_CERTS
-        self.read_timeout = READ_TIMEOUT 
-        self.connect_timeout = CONNECT_TIMEOUT
-        self.retries = RETRIES
+        self.configure_certs(VERIFY_CERTS, CERTPATH)
+        self.configure_timeout(CONNECT_TIMEOUT, READ_TIMEOUT)
+        self.configure_retries(RETRIES)
         self.token = token
         if self.token is None:
             self.token = self.get_auth_token(username, password)

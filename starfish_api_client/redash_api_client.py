@@ -1,7 +1,7 @@
-import requests
-import os
-
 from starfish_api_client.abstract_client import AbstractClient
+from starfish_api_client.constants import (CERTPATH, CONNECT_TIMEOUT, 
+                                           READ_TIMEOUT, RETRIES, 
+                                           VERIFY_CERTS)
 
 
 class RedashAPIClient(AbstractClient):
@@ -9,7 +9,10 @@ class RedashAPIClient(AbstractClient):
         self.url = f'https://{starfish_host}/redash/api/'
         self.token = api_key
         self.query_id = query_id
-        self.auth_method = 'Key'
+        self.configure_certs(VERIFY_CERTS, CERTPATH)
+        self.configure_timeout(CONNECT_TIMEOUT, READ_TIMEOUT)
+        self.configure_retries(RETRIES)
+        self.set_auth_token_name('Key')
     
     def query(self):
         """submit a query and return a json of the results."""
