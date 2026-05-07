@@ -1,9 +1,6 @@
-from warnings import deprecated
-
 from starfish_api_client import StarfishAPIClient
 
 
-@deprecated(reason="This class is no longer used and will be removed in a future release.")
 class StarfishTagger:
     def __init__(self, sf: StarfishAPIClient):
         self.sf = sf
